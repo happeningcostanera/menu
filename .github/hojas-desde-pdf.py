@@ -227,13 +227,19 @@ def titulos_de(pagina, corte):
             ant = renglones[-1]
             mismo_alto = abs(y - ant['y']) <= 4
             hueco = x0 - ant['x1']
-            # el hueco tiene que ser chico Y hacia adelante: si es negativo
-            # el fragmento esta en otra columna, no es el mismo titulo
-            cerca = 0 <= hueco < tam * 1.5
+            # El hueco tiene que ser chico. Puede ser un poco negativo,
+            # porque las letras vecinas se superponen apenas ('B' 'ee' 'r'
+            # 's' de un mismo titulo). Lo que se descarta es un salto
+            # negativo grande: eso es otro titulo, en otra columna.
+            cerca = -tam * 0.3 <= hueco < tam * 1.5
             if mismo_alto and cerca:
-                ant['partes'].append(texto); ant['x1'] = x1
+                # pegado o separado: lo decide el hueco, igual que entre
+                # letras. 'B'+'ee'+'r'+'s' es "Beers", no "B ee r s".
+                union = ' ' if hueco > tam * 0.2 else ''
+                ant['texto'] += union + texto
+                ant['x1'] = x1
                 continue
-        renglones.append({'partes': [texto], 'x0': x0, 'x1': x1, 'y': y, 'tam': tam})
+        renglones.append({'texto': texto, 'x0': x0, 'x1': x1, 'y': y, 'tam': tam})
 
     # 2) juntar renglones seguidos que son un mismo titulo partido en dos
     unidos = []
@@ -241,13 +247,13 @@ def titulos_de(pagina, corte):
         if unidos:
             ant = unidos[-1]
             if (r['y'] - ant['y']) < ant['tam'] * 1.6 and r['x0'] < ant['x1'] and r['x1'] > ant['x0']:
-                ant['partes'].extend(r['partes']); ant['y'] = ant['y']
+                ant['texto'] += ' ' + r['texto']      # otro renglon: siempre con espacio
                 continue
         unidos.append(dict(r))
 
     salida = []
     for r in unidos:
-        texto = ' '.join(' '.join(r['partes']).split())
+        texto = ' '.join(r['texto'].split())
         if len(texto) >= 3:
             rel = (r['y'] - pagina.rect.y0) / pagina.rect.height
             salida.append((texto, round(max(0.0, min(1.0, rel)), 4)))
