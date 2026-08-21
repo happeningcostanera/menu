@@ -1,0 +1,60 @@
+# Mantiene las hojas de la carta al dia, solo. Hay dos formas de subir:
+#
+#   1) Subir el original a originales/ (vinos.pdf, menu.pdf, ingles.pdf).
+#      GitHub lo abre, renderiza cada mesa de trabajo como una hoja y
+#      borra las que ya no existen. Es la forma recomendada.
+#
+#   2) Subir un JPG suelto a menu/, vinos/ o ingles/, como siempre.
+#      Se comprime y listo.
+#
+# Las dos funcionan al mismo tiempo. Nadie tiene que instalar nada.
+
+name: Actualizar las hojas de la carta
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - 'originales/**'
+      - 'menu/**'
+      - 'vinos/**'
+      - 'ingles/**'
+  workflow_dispatch:        # tambien se puede correr a mano desde la pestana Actions
+
+permissions:
+  contents: write           # necesita poder devolver las hojas generadas
+
+concurrency:                # si suben dos cosas seguidas, no se pisan entre si
+  group: hojas-de-la-carta
+  cancel-in-progress: false
+
+jobs:
+  actualizar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - run: pip install --quiet pymupdf Pillow
+
+      - name: Convertir los originales en hojas sueltas
+        run: python .github/hojas-desde-pdf.py
+
+      - name: Comprimir lo que haga falta
+        run: python .github/comprimir.py
+
+      - name: Devolver las hojas al repo
+        run: |
+          if [ -z "$(git status --porcelain)" ]; then
+            echo "No habia nada que actualizar."
+            exit 0
+          fi
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Actualizar las hojas de la carta"
+          git pull --rebase
+          git push

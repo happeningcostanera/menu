@@ -1,0 +1,210 @@
+{
+  "hojas": [
+    {
+      "carpeta": "menu",
+      "hoja": 1,
+      "ancho": 2099,
+      "alto": 3458
+    },
+    {
+      "carpeta": "menu",
+      "hoja": 2,
+      "ancho": 2046,
+      "alto": 3370
+    },
+    {
+      "carpeta": "ingles",
+      "hoja": 1,
+      "ancho": 2340,
+      "alto": 3855
+    },
+    {
+      "carpeta": "ingles",
+      "hoja": 2,
+      "ancho": 2046,
+      "alto": 3370
+    },
+    {
+      "carpeta": "vinos",
+      "hoja": 1,
+      "ancho": 1849,
+      "alto": 2165
+    },
+    {
+      "carpeta": "vinos",
+      "hoja": 2,
+      "ancho": 1836,
+      "alto": 2150
+    },
+    {
+      "carpeta": "vinos",
+      "hoja": 3,
+      "ancho": 1859,
+      "alto": 2177
+    },
+    {
+      "carpeta": "vinos",
+      "hoja": 4,
+      "ancho": 1849,
+      "alto": 2165
+    },
+    {
+      "carpeta": "vinos",
+      "hoja": 5,
+      "ancho": 1849,
+      "alto": 2165
+    },
+    {
+      "carpeta": "vinos",
+      "hoja": 6,
+      "ancho": 1823,
+      "alto": 2135
+    },
+    {
+      "carpeta": "vinos",
+      "hoja": 7,
+      "ancho": 1819,
+      "alto": 2130
+    },
+    {
+      "carpeta": "vinos",
+      "hoja": 8,
+      "ancho": 1819,
+      "alto": 2130
+    },
+    {
+      "carpeta": "vinos",
+      "hoja": 9,
+      "ancho": 1849,
+      "alto": 2165
+    },
+    {
+      "carpeta": "vinos",
+      "hoja": 10,
+      "ancho": 1813,
+      "alto": 2123
+    },
+    {
+      "carpeta": "vinos",
+      "hoja": 11,
+      "ancho": 1823,
+      "alto": 2135
+    },
+    {
+      "carpeta": "vinos",
+      "hoja": 12,
+      "ancho": 1823,
+      "alto": 2135
+    },
+    {
+      "carpeta": "vinos",
+      "hoja": 13,
+      "ancho": 1820,
+      "alto": 2131
+    },
+    {
+      "carpeta": "vinos",
+      "hoja": 14,
+      "ancho": 1820,
+      "alto": 2131
+    },
+    {
+      "carpeta": "vinos",
+      "hoja": 15,
+      "ancho": 1564,
+      "alto": 1832
+    },
+    {
+      "carpeta": "vinos",
+      "hoja": 16,
+      "ancho": 1564,
+      "alto": 1832
+    },
+    {
+      "carpeta": "vinos",
+      "hoja": 17,
+      "ancho": 1564,
+      "alto": 1832
+    },
+    {
+      "carpeta": "vinos",
+      "hoja": 18,
+      "ancho": 1564,
+      "alto": 1832
+    },
+    {
+      "carpeta": "vinos",
+      "hoja": 19,
+      "ancho": 1564,
+      "alto": 1832
+    },
+    {
+      "carpeta": "vinos",
+      "hoja": 20,
+      "ancho": 1564,
+      "alto": 1832
+    }
+  ],
+  "titulos": [
+    {
+      "carpeta": "menu",
+      "hoja": 1,
+      "titulo": "AL COMIENZO",
+      "y": 0.0969
+    },
+    {
+      "carpeta": "menu",
+      "hoja": 2,
+      "titulo": "BEBIDAS Y COCTELERIA",
+      "y": 0.0989
+    },
+    {
+      "carpeta": "ingles",
+      "hoja": 2,
+      "titulo": "CLASSICS",
+      "y": 0.1323
+    },
+    {
+      "carpeta": "ingles",
+      "hoja": 2,
+      "titulo": "SIGNATURE COCKTAILS",
+      "y": 0.1354
+    },
+    {
+      "carpeta": "vinos",
+      "hoja": 1,
+      "titulo": "ESPUMANTES",
+      "y": 0.1247
+    },
+    {
+      "carpeta": "vinos",
+      "hoja": 2,
+      "titulo": "CHAMPAGNES",
+      "y": 0.3777
+    },
+    {
+      "carpeta": "vinos",
+      "hoja": 3,
+      "titulo": "VINOS BLANCOS",
+      "y": 0.0944
+    },
+    {
+      "carpeta": "vinos",
+      "hoja": 5,
+      "titulo": "VINOS ROSADOS",
+      "y": 0.1081
+    },
+    {
+      "carpeta": "vinos",
+      "hoja": 5,
+      "titulo": "VINOS TINTOS",
+      "y": 0.5938
+    },
+    {
+      "carpeta": "vinos",
+      "hoja": 15,
+      "titulo": "NUESTRA CAVA",
+      "y": 0.0974
+    }
+  ]
+}

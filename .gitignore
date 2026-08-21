@@ -1,0 +1,7 @@
+# la carpeta de pruebas locales no va al repositorio
+prueba-pdf/
+prueba-pdf.html
+
+# basura de Python
+__pycache__/
+*.pyc
