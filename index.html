@@ -20,7 +20,7 @@
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
   <link rel="preload" as="image" href="logo/logoh55-web.png">
 
-  <!-- Lato es la tipografia de gardiner.com.ar -->
+  <!-- Lato es la tipografia de happening.com.ar -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap" rel="stylesheet">
@@ -377,9 +377,9 @@ function buscarHoja(sec, n) {
 
 /* Sondea de a lotes y corta cuando un lote entero vino vacio.
    Tolera huecos sueltos (falta la 7 pero esta la 8) sin cortar. */
-async function buscarHojas(sec) {
+async function buscarHojas(sec, desde = 1) {
   const hojas = [];
-  for (let n = 1; n <= sec.max; n += LOTE) {
+  for (let n = desde; n <= sec.max; n += LOTE) {
     const lote = [];
     for (let i = n; i < n + LOTE && i <= sec.max; i++) lote.push(i);
 
@@ -557,52 +557,86 @@ function armarContacto() {
   }
 }
 
-async function armarCarta() {
+function cuantasHojasHay(carpeta) {
+  return MANIFIESTO.hojas.reduce((m, h) => h.carpeta === carpeta ? Math.max(m, h.hoja) : m, 0);
+}
+
+/* Arma una hoja con su imagen y sus accesos en la barra. */
+function agregarHoja(sec, ruta, i, primera) {
   const contenedor = document.getElementById('carta');
   const navegacion = document.getElementById('navegacion');
+  const numero = i + 1;
+
+  const bloque = document.createElement('div');
+  bloque.className = 'hoja';
+  bloque.dataset.idiomas = sec.idiomas.join(' ');
+  bloque.id = sec.carpeta + '-' + numero;
+
+  const img = crearImg(ruta, primera);
+  // reservar el alto de antemano evita el salton cuando entra la imagen
+  const medidas = medidasDe(sec.carpeta, numero);
+  if (medidas) img.style.aspectRatio = medidas.ancho + ' / ' + medidas.alto;
+
+  // Si el manifiesto quedara desfasado y la hoja ya no existiera, se
+  // descarta sola en vez de dejar una imagen rota y un acceso vacio.
+  img.addEventListener('error', () => {
+    document.querySelectorAll('#navegacion a[href="#' + bloque.id + '"]').forEach(a => a.remove());
+    bloque.remove();
+  });
+
+  bloque.appendChild(img);
+  contenedor.appendChild(bloque);
+
+  // Los titulos que el conversor leyo del PDF mandan, porque son mas
+  // precisos. La etiqueta fija de SECCIONES solo aparece si esta hoja
+  // no tiene ninguno: asi no quedan dos accesos al mismo lugar.
+  const detectados = titulosDe(sec.carpeta, numero);
+
+  if (detectados.length) {
+    for (const t of detectados) {
+      for (const idioma of sec.idiomas) {
+        navegacion.appendChild(crearEnlace(acortar(t.titulo), bloque, t.y, idioma));
+      }
+    }
+  } else {
+    for (const idioma of sec.idiomas) {
+      const etiqueta = sec.etiquetas && sec.etiquetas[idioma] && sec.etiquetas[idioma][i];
+      if (etiqueta) navegacion.appendChild(crearEnlace(etiqueta, bloque, 0, idioma));
+    }
+  }
+}
+
+/* Busca hojas que no figuren en el manifiesto: las que alguien subio a
+   mano como JPG, sin pasar por el PDF. Se hace despues de mostrar la
+   carta, para no demorar lo que ya se puede ver. */
+async function buscarHojasDeMas(sec, desde) {
+  const hojas = await buscarHojas(sec, desde + 1);
+  if (!hojas.length) return;
+  hojas.forEach((hoja, k) => agregarHoja(sec, hoja, desde + k, false));
+  ponerIdioma(idiomaGuardado());
+}
+
+async function armarCarta() {
   const aviso = document.getElementById('aviso');
   let total = 0;
 
   await leerManifiesto();
 
+  // Con manifiesto no hace falta sondear: ya dice cuantas hojas hay, asi
+  // que la carta y su barra aparecen juntas y enseguida. Antes la barra
+  // salia recien al terminar de sondear las 27 hojas, y quedaba la primera
+  // hoja sola un par de segundos, como si no hubiera nada mas.
+  const conManifiesto = MANIFIESTO.hojas.length > 0;
+
   for (const sec of SECCIONES) {
-    const hojas = await buscarHojas(sec);
-
-    hojas.forEach((hoja, i) => {
-      const numero = i + 1;
-      const bloque = document.createElement('div');
-      bloque.className = 'hoja';
-      bloque.dataset.idiomas = sec.idiomas.join(' ');
-      bloque.id = sec.carpeta + '-' + numero;
-
-      const img = crearImg(hoja, total === 0);
-      // reservar el alto de antemano evita el salton cuando entra la imagen
-      const medidas = medidasDe(sec.carpeta, numero);
-      if (medidas) img.style.aspectRatio = medidas.ancho + ' / ' + medidas.alto;
-      bloque.appendChild(img);
-
-      contenedor.appendChild(bloque);
-
-      // Los titulos que el conversor leyo del PDF mandan, porque son mas
-      // precisos. La etiqueta fija de SECCIONES solo aparece si esta hoja
-      // no tiene ninguno: asi no quedan dos accesos al mismo lugar.
-      const detectados = titulosDe(sec.carpeta, numero);
-
-      if (detectados.length) {
-        for (const t of detectados) {
-          for (const idioma of sec.idiomas) {
-            navegacion.appendChild(crearEnlace(acortar(t.titulo), bloque, t.y, idioma));
-          }
-        }
-      } else {
-        for (const idioma of sec.idiomas) {
-          const etiqueta = sec.etiquetas && sec.etiquetas[idioma] && sec.etiquetas[idioma][i];
-          if (etiqueta) navegacion.appendChild(crearEnlace(etiqueta, bloque, 0, idioma));
-        }
-      }
-
-      total++;
-    });
+    let hojas;
+    if (conManifiesto) {
+      const n = cuantasHojasHay(sec.carpeta);
+      hojas = Array.from({ length: n }, (_, i) => sec.carpeta + '/' + sec.nombre(i + 1) + '.jpg');
+    } else {
+      hojas = await buscarHojas(sec);
+    }
+    hojas.forEach((hoja, i) => { agregarHoja(sec, hoja, i, total === 0); total++; });
   }
 
   if (!total) {
@@ -614,6 +648,10 @@ async function armarCarta() {
   ponerIdioma(idiomaGuardado());
   aviso.remove();
   document.getElementById('cabecera').hidden = false;
+
+  if (conManifiesto) {
+    for (const sec of SECCIONES) buscarHojasDeMas(sec, cuantasHojasHay(sec.carpeta));
+  }
 }
 
 document.querySelectorAll('.idiomas button').forEach(b => {
