@@ -76,6 +76,8 @@
     gap: 12px;
   }
 
+  .barra .inicio { display: flex; flex: none; }
+
   /* el logo es apaisado 3.6:1 (palabra + filigrana, sin los filetes) */
   .barra img { height: 30px; width: auto; display: block; }
 
@@ -268,7 +270,7 @@
 
 <header hidden id="cabecera">
   <div class="barra">
-    <img src="logo/logoh55-web.png" alt="Happening">
+    <a class="inicio" href="#"><img src="logo/logoh55-web.png" alt="Happening"></a>
     <div class="idiomas">
       <button type="button" data-idioma="es" aria-pressed="true">ES</button>
       <button type="button" data-idioma="en" aria-pressed="false">EN</button>
@@ -653,6 +655,12 @@ async function armarCarta() {
     for (const sec of SECCIONES) buscarHojasDeMas(sec, cuantasHojasHay(sec.carpeta));
   }
 }
+
+// tocar el logo vuelve arriba de todo
+document.querySelector('.inicio').addEventListener('click', e => {
+  e.preventDefault();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+});
 
 document.querySelectorAll('.idiomas button').forEach(b => {
   b.addEventListener('click', () => {
