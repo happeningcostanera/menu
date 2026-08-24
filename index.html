@@ -119,6 +119,32 @@
 
   nav::-webkit-scrollbar { display: none; }
 
+  /* Aviso de que la tira sigue. Sin esto, en algunos anchos de telefono
+     los accesos terminan justo antes del borde y la barra parece
+     completa: quien no tiene el habito de deslizar no descubre el resto,
+     que en Gardiner son 8 de los 12 accesos, vinos incluidos. */
+  /* mismo ancho y centrado que el nav, para que el degradado quede
+     pegado al borde de la tira y no al de la ventana */
+  .navmarco { position: relative; max-width: 820px; margin: 0 auto; }
+
+  .navmarco::before,
+  .navmarco::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 46px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity .18s ease;
+  }
+
+  .navmarco::after  { right: 0; background: linear-gradient(to right, transparent, rgba(19, 19, 19, .95)); }
+  .navmarco::before { left: 0;  background: linear-gradient(to left,  transparent, rgba(19, 19, 19, .95)); }
+
+  .navmarco.hay-mas-derecha::after   { opacity: 1; }
+  .navmarco.hay-mas-izquierda::before { opacity: 1; }
+
   nav a {
     color: var(--tenue);
     text-decoration: none;
@@ -276,7 +302,9 @@
       <button type="button" data-idioma="en" aria-pressed="false">EN</button>
     </div>
   </div>
-  <nav id="navegacion"></nav>
+  <div class="navmarco">
+    <nav id="navegacion"></nav>
+  </div>
 </header>
 
 <main id="carta"></main>
@@ -423,6 +451,9 @@ function ponerIdioma(idioma) {
   });
 
   try { localStorage.setItem('idioma', idioma); } catch (e) {}
+
+  // cambia la cantidad de accesos, asi que cambia cuanto queda por ver
+  marcarDesplazamiento();
 }
 
 // ---------- visor de pantalla completa ----------
@@ -650,11 +681,24 @@ async function armarCarta() {
   ponerIdioma(idiomaGuardado());
   aviso.remove();
   document.getElementById('cabecera').hidden = false;
+  marcarDesplazamiento();
 
   if (conManifiesto) {
     for (const sec of SECCIONES) buscarHojasDeMas(sec, cuantasHojasHay(sec.carpeta));
   }
 }
+
+/* Enciende el degradado del lado donde queda tira sin ver. */
+function marcarDesplazamiento() {
+  const nav = document.getElementById('navegacion');
+  const marco = nav.parentElement;
+  const resto = nav.scrollWidth - nav.clientWidth - nav.scrollLeft;
+  marco.classList.toggle('hay-mas-derecha', resto > 1);
+  marco.classList.toggle('hay-mas-izquierda', nav.scrollLeft > 1);
+}
+
+document.getElementById('navegacion').addEventListener('scroll', marcarDesplazamiento, { passive: true });
+window.addEventListener('resize', marcarDesplazamiento);
 
 // tocar el logo vuelve arriba de todo
 document.querySelector('.inicio').addEventListener('click', e => {
