@@ -111,7 +111,7 @@
     margin: 0 auto;
     padding: 0 16px 11px;
     display: flex;
-    gap: 24px;
+    gap: 0;
     overflow-x: auto;
     scrollbar-width: none;
     -webkit-overflow-scrolling: touch;
@@ -144,6 +144,15 @@
 
   .navmarco.hay-mas-derecha::after   { opacity: 1; }
   .navmarco.hay-mas-izquierda::before { opacity: 1; }
+
+  /* La separacion de antes (24 px) se reparte a los lados de la linea,
+     asi la tira no se hace mas larga por tener separadores. */
+  nav a + a { border-left: 1px solid var(--linea); }
+  nav a:not(.primero) { padding-left: 12px; }
+  nav a { padding-right: 12px; }
+
+  /* el primero visible no lleva linea: cambia segun el idioma */
+  nav a.primero { border-left: 0; padding-left: 0; }
 
   nav a {
     color: var(--tenue);
@@ -343,15 +352,15 @@
 const SECCIONES = [
   { carpeta: 'menu',   nombre: n => 'h55-' + pad(n, 2),        max: 15,
     idiomas: ['es'],
-    etiquetas: { es: ['Comida', 'Bebidas'] } },
+    etiquetas: { es: [] } },
 
   { carpeta: 'ingles', nombre: n => 'h55_en-' + pad(n, 2),     max: 15,
     idiomas: ['en'],
-    etiquetas: { en: ['Menu', 'Drinks'] } },
+    etiquetas: { en: ['Menu'] } },
 
   { carpeta: 'vinos',  nombre: n => 'h55_vinos-' + pad(n, 2),  max: 40,
     idiomas: ['es', 'en'],
-    etiquetas: { es: ['Vinos'], en: ['Wines'] } }
+    etiquetas: {} }
 ];
 
 /* CONTACTO: datos de happening.com.ar, sede COSTANERA NORTE.
@@ -451,6 +460,12 @@ function ponerIdioma(idioma) {
   });
 
   try { localStorage.setItem('idioma', idioma); } catch (e) {}
+
+  // el separador no va antes del primero, y cual es el primero depende
+  // de que accesos quedaron visibles en este idioma
+  const visibles = [...document.querySelectorAll('#navegacion a')].filter(a => !a.classList.contains('oculta'));
+  document.querySelectorAll('#navegacion a').forEach(a => a.classList.remove('primero'));
+  if (visibles.length) visibles[0].classList.add('primero');
 
   // cambia la cantidad de accesos, asi que cambia cuanto queda por ver
   marcarDesplazamiento();
@@ -620,21 +635,20 @@ function agregarHoja(sec, ruta, i, primera) {
   bloque.appendChild(img);
   contenedor.appendChild(bloque);
 
-  // Los titulos que el conversor leyo del PDF mandan, porque son mas
-  // precisos. La etiqueta fija de SECCIONES solo aparece si esta hoja
-  // no tiene ninguno: asi no quedan dos accesos al mismo lugar.
-  const detectados = titulosDe(sec.carpeta, numero);
+  // La etiqueta de SECCIONES marca donde empieza la hoja, y los titulos que
+  // el conversor leyo del PDF marcan las secciones de adentro. Van las dos
+  // cosas: sin la etiqueta, la hoja de bebidas empezaba con "Clasicos" y
+  // nadie que buscara un cafe iba a tocar esa palabra.
+  // Si el primer titulo de una hoja ya dice de que se trata, esa hoja se
+  // deja sin etiqueta en SECCIONES para no repetir lo mismo dos veces.
+  for (const idioma of sec.idiomas) {
+    const etiqueta = sec.etiquetas && sec.etiquetas[idioma] && sec.etiquetas[idioma][i];
+    if (etiqueta) navegacion.appendChild(crearEnlace(etiqueta, bloque, 0, idioma));
+  }
 
-  if (detectados.length) {
-    for (const t of detectados) {
-      for (const idioma of sec.idiomas) {
-        navegacion.appendChild(crearEnlace(acortar(t.titulo), bloque, t.y, idioma));
-      }
-    }
-  } else {
+  for (const t of titulosDe(sec.carpeta, numero)) {
     for (const idioma of sec.idiomas) {
-      const etiqueta = sec.etiquetas && sec.etiquetas[idioma] && sec.etiquetas[idioma][i];
-      if (etiqueta) navegacion.appendChild(crearEnlace(etiqueta, bloque, 0, idioma));
+      navegacion.appendChild(crearEnlace(acortar(t.titulo), bloque, t.y, idioma));
     }
   }
 }
