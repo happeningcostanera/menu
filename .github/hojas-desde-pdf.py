@@ -246,14 +246,32 @@ def titulos_de(pagina, corte):
     for r in renglones:
         if unidos:
             ant = unidos[-1]
-            if (r['y'] - ant['y']) < ant['tam'] * 1.6 and r['x0'] < ant['x1'] and r['x1'] > ant['x0']:
-                ant['texto'] += ' ' + r['texto']      # otro renglon: siempre con espacio
+            # Los dos renglones tienen que compartir columna. Se admite un
+            # margen de una letra: un titulo escalonado como
+            # "Vermouths / & Aperitifs" tiene los pedazos pegados pero sin
+            # solaparse, y por 0.7 pt quedaban como dos accesos distintos.
+            margen = ant['tam']
+            misma_columna = r['x0'] < ant['x1'] + margen and r['x1'] > ant['x0'] - margen
+            if (r['y'] - ant['y']) < ant['tam'] * 1.6 and misma_columna:
+                ant['piezas'].append((r['x0'], r['y'], r['texto']))
+                ant['x1'] = max(ant['x1'], r['x1'])
                 continue
-        unidos.append(dict(r))
+        nuevo = dict(r)
+        nuevo['piezas'] = [(r['x0'], r['y'], r['texto'])]
+        unidos.append(nuevo)
 
     salida = []
     for r in unidos:
-        texto = ' '.join(r['texto'].split())
+        # Un titulo escalonado ("Vermouths / & Aperitifs") tiene los pedazos
+        # a alturas apenas distintas, y ordenarlos por altura los desordena:
+        # el "&" cae 3.5 pt mas abajo y terminaba al final. Cuando todos
+        # entran en el alto de un renglon, manda la posicion horizontal, que
+        # es el orden en que se lee.
+        piezas = r['piezas']
+        alturas = [p[1] for p in piezas]
+        if len(piezas) > 1 and max(alturas) - min(alturas) <= r['tam'] * 1.3:
+            piezas = sorted(piezas, key=lambda p: p[0])
+        texto = ' '.join(' '.join(p[2] for p in piezas).split())
         if len(texto) >= 3:
             rel = (r['y'] - pagina.rect.y0) / pagina.rect.height
             salida.append((texto, round(max(0.0, min(1.0, rel)), 4)))
