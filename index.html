@@ -20,7 +20,7 @@
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
   <link rel="preload" as="image" href="logo/logoh55-web.png">
 
-  <!-- Lato es la tipografia de gardiner.com.ar -->
+  <!-- Lato es la tipografia de happening.com.ar -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap" rel="stylesheet">
@@ -76,6 +76,8 @@
     gap: 12px;
   }
 
+  .barra .inicio { display: flex; flex: none; }
+
   /* el logo es apaisado 3.6:1 (palabra + filigrana, sin los filetes) */
   .barra img { height: 30px; width: auto; display: block; }
 
@@ -109,13 +111,48 @@
     margin: 0 auto;
     padding: 0 16px 11px;
     display: flex;
-    gap: 24px;
+    gap: 0;
     overflow-x: auto;
     scrollbar-width: none;
     -webkit-overflow-scrolling: touch;
   }
 
   nav::-webkit-scrollbar { display: none; }
+
+  /* Aviso de que la tira sigue. Sin esto, en algunos anchos de telefono
+     los accesos terminan justo antes del borde y la barra parece
+     completa: quien no tiene el habito de deslizar no descubre el resto,
+     que en Gardiner son 8 de los 12 accesos, vinos incluidos. */
+  /* mismo ancho y centrado que el nav, para que el degradado quede
+     pegado al borde de la tira y no al de la ventana */
+  .navmarco { position: relative; max-width: 820px; margin: 0 auto; }
+
+  .navmarco::before,
+  .navmarco::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 46px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity .18s ease;
+  }
+
+  .navmarco::after  { right: 0; background: linear-gradient(to right, transparent, rgba(19, 19, 19, .95)); }
+  .navmarco::before { left: 0;  background: linear-gradient(to left,  transparent, rgba(19, 19, 19, .95)); }
+
+  .navmarco.hay-mas-derecha::after   { opacity: 1; }
+  .navmarco.hay-mas-izquierda::before { opacity: 1; }
+
+  /* La separacion de antes (24 px) se reparte a los lados de la linea,
+     asi la tira no se hace mas larga por tener separadores. */
+  nav a + a { border-left: 1px solid var(--linea); }
+  nav a:not(.primero) { padding-left: 12px; }
+  nav a { padding-right: 12px; }
+
+  /* el primero visible no lleva linea: cambia segun el idioma */
+  nav a.primero { border-left: 0; padding-left: 0; }
 
   nav a {
     color: var(--tenue);
@@ -268,13 +305,15 @@
 
 <header hidden id="cabecera">
   <div class="barra">
-    <img src="logo/logoh55-web.png" alt="Happening">
+    <a class="inicio" href="#"><img src="logo/logoh55-web.png" alt="Happening"></a>
     <div class="idiomas">
       <button type="button" data-idioma="es" aria-pressed="true">ES</button>
       <button type="button" data-idioma="en" aria-pressed="false">EN</button>
     </div>
   </div>
-  <nav id="navegacion"></nav>
+  <div class="navmarco">
+    <nav id="navegacion"></nav>
+  </div>
 </header>
 
 <main id="carta"></main>
@@ -313,15 +352,15 @@
 const SECCIONES = [
   { carpeta: 'menu',   nombre: n => 'h55-' + pad(n, 2),        max: 15,
     idiomas: ['es'],
-    etiquetas: { es: ['Comida', 'Bebidas'] } },
+    etiquetas: { es: [] } },
 
   { carpeta: 'ingles', nombre: n => 'h55_en-' + pad(n, 2),     max: 15,
     idiomas: ['en'],
-    etiquetas: { en: ['Menu', 'Drinks'] } },
+    etiquetas: { en: ['Menu'] } },
 
   { carpeta: 'vinos',  nombre: n => 'h55_vinos-' + pad(n, 2),  max: 40,
     idiomas: ['es', 'en'],
-    etiquetas: { es: ['Vinos'], en: ['Wines'] } }
+    etiquetas: {} }
 ];
 
 /* CONTACTO: datos de happening.com.ar, sede COSTANERA NORTE.
@@ -377,9 +416,9 @@ function buscarHoja(sec, n) {
 
 /* Sondea de a lotes y corta cuando un lote entero vino vacio.
    Tolera huecos sueltos (falta la 7 pero esta la 8) sin cortar. */
-async function buscarHojas(sec) {
+async function buscarHojas(sec, desde = 1) {
   const hojas = [];
-  for (let n = 1; n <= sec.max; n += LOTE) {
+  for (let n = desde; n <= sec.max; n += LOTE) {
     const lote = [];
     for (let i = n; i < n + LOTE && i <= sec.max; i++) lote.push(i);
 
@@ -421,6 +460,15 @@ function ponerIdioma(idioma) {
   });
 
   try { localStorage.setItem('idioma', idioma); } catch (e) {}
+
+  // el separador no va antes del primero, y cual es el primero depende
+  // de que accesos quedaron visibles en este idioma
+  const visibles = [...document.querySelectorAll('#navegacion a')].filter(a => !a.classList.contains('oculta'));
+  document.querySelectorAll('#navegacion a').forEach(a => a.classList.remove('primero'));
+  if (visibles.length) visibles[0].classList.add('primero');
+
+  // cambia la cantidad de accesos, asi que cambia cuanto queda por ver
+  marcarDesplazamiento();
 }
 
 // ---------- visor de pantalla completa ----------
@@ -557,52 +605,85 @@ function armarContacto() {
   }
 }
 
-async function armarCarta() {
+function cuantasHojasHay(carpeta) {
+  return MANIFIESTO.hojas.reduce((m, h) => h.carpeta === carpeta ? Math.max(m, h.hoja) : m, 0);
+}
+
+/* Arma una hoja con su imagen y sus accesos en la barra. */
+function agregarHoja(sec, ruta, i, primera) {
   const contenedor = document.getElementById('carta');
   const navegacion = document.getElementById('navegacion');
+  const numero = i + 1;
+
+  const bloque = document.createElement('div');
+  bloque.className = 'hoja';
+  bloque.dataset.idiomas = sec.idiomas.join(' ');
+  bloque.id = sec.carpeta + '-' + numero;
+
+  const img = crearImg(ruta, primera);
+  // reservar el alto de antemano evita el salton cuando entra la imagen
+  const medidas = medidasDe(sec.carpeta, numero);
+  if (medidas) img.style.aspectRatio = medidas.ancho + ' / ' + medidas.alto;
+
+  // Si el manifiesto quedara desfasado y la hoja ya no existiera, se
+  // descarta sola en vez de dejar una imagen rota y un acceso vacio.
+  img.addEventListener('error', () => {
+    document.querySelectorAll('#navegacion a[href="#' + bloque.id + '"]').forEach(a => a.remove());
+    bloque.remove();
+  });
+
+  bloque.appendChild(img);
+  contenedor.appendChild(bloque);
+
+  // La etiqueta de SECCIONES marca donde empieza la hoja, y los titulos que
+  // el conversor leyo del PDF marcan las secciones de adentro. Van las dos
+  // cosas: sin la etiqueta, la hoja de bebidas empezaba con "Clasicos" y
+  // nadie que buscara un cafe iba a tocar esa palabra.
+  // Si el primer titulo de una hoja ya dice de que se trata, esa hoja se
+  // deja sin etiqueta en SECCIONES para no repetir lo mismo dos veces.
+  for (const idioma of sec.idiomas) {
+    const etiqueta = sec.etiquetas && sec.etiquetas[idioma] && sec.etiquetas[idioma][i];
+    if (etiqueta) navegacion.appendChild(crearEnlace(etiqueta, bloque, 0, idioma));
+  }
+
+  for (const t of titulosDe(sec.carpeta, numero)) {
+    for (const idioma of sec.idiomas) {
+      navegacion.appendChild(crearEnlace(acortar(t.titulo), bloque, t.y, idioma));
+    }
+  }
+}
+
+/* Busca hojas que no figuren en el manifiesto: las que alguien subio a
+   mano como JPG, sin pasar por el PDF. Se hace despues de mostrar la
+   carta, para no demorar lo que ya se puede ver. */
+async function buscarHojasDeMas(sec, desde) {
+  const hojas = await buscarHojas(sec, desde + 1);
+  if (!hojas.length) return;
+  hojas.forEach((hoja, k) => agregarHoja(sec, hoja, desde + k, false));
+  ponerIdioma(idiomaGuardado());
+}
+
+async function armarCarta() {
   const aviso = document.getElementById('aviso');
   let total = 0;
 
   await leerManifiesto();
 
+  // Con manifiesto no hace falta sondear: ya dice cuantas hojas hay, asi
+  // que la carta y su barra aparecen juntas y enseguida. Antes la barra
+  // salia recien al terminar de sondear las 27 hojas, y quedaba la primera
+  // hoja sola un par de segundos, como si no hubiera nada mas.
+  const conManifiesto = MANIFIESTO.hojas.length > 0;
+
   for (const sec of SECCIONES) {
-    const hojas = await buscarHojas(sec);
-
-    hojas.forEach((hoja, i) => {
-      const numero = i + 1;
-      const bloque = document.createElement('div');
-      bloque.className = 'hoja';
-      bloque.dataset.idiomas = sec.idiomas.join(' ');
-      bloque.id = sec.carpeta + '-' + numero;
-
-      const img = crearImg(hoja, total === 0);
-      // reservar el alto de antemano evita el salton cuando entra la imagen
-      const medidas = medidasDe(sec.carpeta, numero);
-      if (medidas) img.style.aspectRatio = medidas.ancho + ' / ' + medidas.alto;
-      bloque.appendChild(img);
-
-      contenedor.appendChild(bloque);
-
-      // Los titulos que el conversor leyo del PDF mandan, porque son mas
-      // precisos. La etiqueta fija de SECCIONES solo aparece si esta hoja
-      // no tiene ninguno: asi no quedan dos accesos al mismo lugar.
-      const detectados = titulosDe(sec.carpeta, numero);
-
-      if (detectados.length) {
-        for (const t of detectados) {
-          for (const idioma of sec.idiomas) {
-            navegacion.appendChild(crearEnlace(acortar(t.titulo), bloque, t.y, idioma));
-          }
-        }
-      } else {
-        for (const idioma of sec.idiomas) {
-          const etiqueta = sec.etiquetas && sec.etiquetas[idioma] && sec.etiquetas[idioma][i];
-          if (etiqueta) navegacion.appendChild(crearEnlace(etiqueta, bloque, 0, idioma));
-        }
-      }
-
-      total++;
-    });
+    let hojas;
+    if (conManifiesto) {
+      const n = cuantasHojasHay(sec.carpeta);
+      hojas = Array.from({ length: n }, (_, i) => sec.carpeta + '/' + sec.nombre(i + 1) + '.jpg');
+    } else {
+      hojas = await buscarHojas(sec);
+    }
+    hojas.forEach((hoja, i) => { agregarHoja(sec, hoja, i, total === 0); total++; });
   }
 
   if (!total) {
@@ -614,7 +695,30 @@ async function armarCarta() {
   ponerIdioma(idiomaGuardado());
   aviso.remove();
   document.getElementById('cabecera').hidden = false;
+  marcarDesplazamiento();
+
+  if (conManifiesto) {
+    for (const sec of SECCIONES) buscarHojasDeMas(sec, cuantasHojasHay(sec.carpeta));
+  }
 }
+
+/* Enciende el degradado del lado donde queda tira sin ver. */
+function marcarDesplazamiento() {
+  const nav = document.getElementById('navegacion');
+  const marco = nav.parentElement;
+  const resto = nav.scrollWidth - nav.clientWidth - nav.scrollLeft;
+  marco.classList.toggle('hay-mas-derecha', resto > 1);
+  marco.classList.toggle('hay-mas-izquierda', nav.scrollLeft > 1);
+}
+
+document.getElementById('navegacion').addEventListener('scroll', marcarDesplazamiento, { passive: true });
+window.addEventListener('resize', marcarDesplazamiento);
+
+// tocar el logo vuelve arriba de todo
+document.querySelector('.inicio').addEventListener('click', e => {
+  e.preventDefault();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+});
 
 document.querySelectorAll('.idiomas button').forEach(b => {
   b.addEventListener('click', () => {
