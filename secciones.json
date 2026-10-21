@@ -3,8 +3,8 @@
     {
       "carpeta": "menu",
       "hoja": 1,
-      "ancho": 2099,
-      "alto": 3458
+      "ancho": 2046,
+      "alto": 3370
     },
     {
       "carpeta": "menu",
@@ -15,14 +15,128 @@
     {
       "carpeta": "ingles",
       "hoja": 1,
-      "ancho": 2340,
-      "alto": 3855
+      "ancho": 1849,
+      "alto": 2165
     },
     {
       "carpeta": "ingles",
       "hoja": 2,
-      "ancho": 2046,
-      "alto": 3370
+      "ancho": 1836,
+      "alto": 2150
+    },
+    {
+      "carpeta": "ingles",
+      "hoja": 3,
+      "ancho": 1859,
+      "alto": 2177
+    },
+    {
+      "carpeta": "ingles",
+      "hoja": 4,
+      "ancho": 1849,
+      "alto": 2165
+    },
+    {
+      "carpeta": "ingles",
+      "hoja": 5,
+      "ancho": 1849,
+      "alto": 2165
+    },
+    {
+      "carpeta": "ingles",
+      "hoja": 6,
+      "ancho": 1823,
+      "alto": 2135
+    },
+    {
+      "carpeta": "ingles",
+      "hoja": 7,
+      "ancho": 1819,
+      "alto": 2130
+    },
+    {
+      "carpeta": "ingles",
+      "hoja": 8,
+      "ancho": 1819,
+      "alto": 2130
+    },
+    {
+      "carpeta": "ingles",
+      "hoja": 9,
+      "ancho": 1849,
+      "alto": 2165
+    },
+    {
+      "carpeta": "ingles",
+      "hoja": 10,
+      "ancho": 1819,
+      "alto": 2130
+    },
+    {
+      "carpeta": "ingles",
+      "hoja": 11,
+      "ancho": 1813,
+      "alto": 2123
+    },
+    {
+      "carpeta": "ingles",
+      "hoja": 12,
+      "ancho": 1823,
+      "alto": 2135
+    },
+    {
+      "carpeta": "ingles",
+      "hoja": 13,
+      "ancho": 1820,
+      "alto": 2131
+    },
+    {
+      "carpeta": "ingles",
+      "hoja": 14,
+      "ancho": 1820,
+      "alto": 2131
+    },
+    {
+      "carpeta": "ingles",
+      "hoja": 15,
+      "ancho": 1820,
+      "alto": 2131
+    },
+    {
+      "carpeta": "ingles",
+      "hoja": 16,
+      "ancho": 1564,
+      "alto": 1832
+    },
+    {
+      "carpeta": "ingles",
+      "hoja": 17,
+      "ancho": 1564,
+      "alto": 1832
+    },
+    {
+      "carpeta": "ingles",
+      "hoja": 18,
+      "ancho": 1564,
+      "alto": 1832
+    },
+    {
+      "carpeta": "ingles",
+      "hoja": 19,
+      "ancho": 1564,
+      "alto": 1832
+    },
+    {
+      "carpeta": "ingles",
+      "hoja": 20,
+      "ancho": 1564,
+      "alto": 1832
+    },
+    {
+      "carpeta": "ingles",
+      "hoja": 21,
+      "ancho": 1561,
+      "alto": 1833
     },
     {
       "carpeta": "vinos",
@@ -69,8 +183,8 @@
     {
       "carpeta": "vinos",
       "hoja": 8,
-      "ancho": 1797,
-      "alto": 2104
+      "ancho": 1819,
+      "alto": 2130
     },
     {
       "carpeta": "vinos",
@@ -156,7 +270,7 @@
       "carpeta": "menu",
       "hoja": 1,
       "titulo": "AL COMIENZO",
-      "y": 0.0969
+      "y": 0.0929
     },
     {
       "carpeta": "menu",
@@ -166,15 +280,51 @@
     },
     {
       "carpeta": "ingles",
-      "hoja": 2,
-      "titulo": "CLASSICS",
-      "y": 0.1323
+      "hoja": 1,
+      "titulo": "ESPUMANTES",
+      "y": 0.113
     },
     {
       "carpeta": "ingles",
       "hoja": 2,
-      "titulo": "SIGNATURE COCKTAILS",
-      "y": 0.1354
+      "titulo": "CHAMPAGNES",
+      "y": 0.0896
+    },
+    {
+      "carpeta": "ingles",
+      "hoja": 2,
+      "titulo": "VINOS ESPUMANTES DEL MUNDO",
+      "y": 0.7274
+    },
+    {
+      "carpeta": "ingles",
+      "hoja": 3,
+      "titulo": "VINOS BLANCOS",
+      "y": 0.0856
+    },
+    {
+      "carpeta": "ingles",
+      "hoja": 5,
+      "titulo": "VINOS ROSADOS",
+      "y": 0.1081
+    },
+    {
+      "carpeta": "ingles",
+      "hoja": 5,
+      "titulo": "VINOS TINTOS",
+      "y": 0.6688
+    },
+    {
+      "carpeta": "ingles",
+      "hoja": 15,
+      "titulo": "MAGNUM",
+      "y": 0.1244
+    },
+    {
+      "carpeta": "ingles",
+      "hoja": 16,
+      "titulo": "NUESTRA CAVA",
+      "y": 0.1333
     },
     {
       "carpeta": "vinos",
@@ -186,13 +336,13 @@
       "carpeta": "vinos",
       "hoja": 2,
       "titulo": "CHAMPAGNES",
-      "y": 0.1072
+      "y": 0.0896
     },
     {
       "carpeta": "vinos",
       "hoja": 2,
       "titulo": "VINOS ESPUMANTES DEL MUNDO",
-      "y": 0.7156
+      "y": 0.7274
     },
     {
       "carpeta": "vinos",
@@ -216,7 +366,7 @@
       "carpeta": "vinos",
       "hoja": 15,
       "titulo": "MAGNUM",
-      "y": 0.1614
+      "y": 0.1244
     },
     {
       "carpeta": "vinos",
@@ -224,5 +374,19 @@
       "titulo": "NUESTRA CAVA",
       "y": 0.1333
     }
-  ]
+  ],
+  "versiones": {
+    "menu": {
+      "pdf": "2026-10-13T18:36:09+00:00",
+      "publicado": "2026-10-13T18:42:42+00:00"
+    },
+    "ingles": {
+      "pdf": "2026-10-13T18:40:49+00:00",
+      "publicado": "2026-10-13T18:42:42+00:00"
+    },
+    "vinos": {
+      "pdf": "2026-10-13T18:41:25+00:00",
+      "publicado": "2026-10-13T18:42:42+00:00"
+    }
+  }
 }

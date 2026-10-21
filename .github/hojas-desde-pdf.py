@@ -16,6 +16,7 @@ import json
 import re
 import statistics
 import unicodedata
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import pymupdf
@@ -278,15 +279,58 @@ def titulos_de(pagina, corte):
     return salida
 
 
-def escribir_manifiesto():
+def fecha_del_pdf(doc):
+    """Cuando se guardo el PDF en Illustrator, en UTC (o None si no figura).
+
+    Es la fecha del archivo, no la de la subida: asi quien lo exporto puede
+    compararla con la de su propia copia y saber si lo que esta en linea
+    es ese mismo PDF."""
+    meta = doc.metadata or {}
+    crudo = meta.get('modDate') or meta.get('creationDate') or ''
+    m = re.match(r"D:(\d{4})(\d\d)(\d\d)(\d\d)?(\d\d)?(\d\d)?(?:([Zz+-])(?:(\d\d)'?(\d\d)?)?)?", crudo)
+    if not m:
+        return None
+    anio, mes, dia, hora, minu, seg, signo, zh, zm = m.groups()
+    try:
+        tz = timezone.utc
+        if signo in ('+', '-'):
+            desfase = timedelta(hours=int(zh or 0), minutes=int(zm or 0))
+            tz = timezone(desfase if signo == '+' else -desfase)
+        f = datetime(int(anio), int(mes), int(dia), int(hora or 0), int(minu or 0), int(seg or 0), tzinfo=tz)
+    except ValueError:
+        return None
+    return f.astimezone(timezone.utc).isoformat(timespec='seconds')
+
+
+def versiones_previas():
+    """Lo que ya decia secciones.json sobre cada original, para no perder
+    la hora de publicacion de las secciones que hoy no se tocaron."""
+    try:
+        return json.loads(MANIFIESTO.read_text(encoding='utf-8')).get('versiones', {})
+    except Exception:
+        return {}
+
+
+def escribir_manifiesto(convertidas=()):
     """Deja en secciones.json los titulos de cada hoja, para que la carta
-       pueda armar los accesos directos sin que nadie los escriba a mano."""
+       pueda armar los accesos directos sin que nadie los escriba a mano.
+
+       Tambien deja la version de cada original (fecha del PDF y hora en que
+       se publico), que la carta muestra en el icono "i" del pie."""
     hojas, titulos = [], []
+    previas = versiones_previas()
+    versiones = {}
+    ahora = datetime.now(timezone.utc).isoformat(timespec='seconds')
     for sec in SECCIONES:
         original = buscar_original(sec)
         if original is None:
+            if sec['origen'] in previas:
+                versiones[sec['origen']] = previas[sec['origen']]
             continue
         doc = pymupdf.open(original)
+
+        publicado = ahora if sec['origen'] in convertidas else previas.get(sec['origen'], {}).get('publicado')
+        versiones[sec['origen']] = {'pdf': fecha_del_pdf(doc), 'publicado': publicado}
 
         # el corte se calcula con todo el documento, no hoja por hoja
         medidas = [s['size']
@@ -322,7 +366,7 @@ def escribir_manifiesto():
         doc.close()
 
     MANIFIESTO.write_text(
-        json.dumps({'hojas': hojas, 'titulos': titulos}, ensure_ascii=False, indent=2) + '\n',
+        json.dumps({'hojas': hojas, 'titulos': titulos, 'versiones': versiones}, ensure_ascii=False, indent=2) + '\n',
         encoding='utf-8')
     print(f'\n{MANIFIESTO}: {len(hojas)} hojas, {len(titulos)} accesos directos')
     for m in titulos:
@@ -402,6 +446,7 @@ def main():
     nuevo = dict(registro)
     trabajo = False
     usados = []
+    convertidas = set()
 
     for sec in SECCIONES:
         original = buscar_original(sec)
@@ -421,6 +466,7 @@ def main():
 
         convertir(sec, original)
         nuevo[sec['origen']] = h
+        convertidas.add(sec['origen'])
         trabajo = True
 
     if trabajo:
@@ -431,7 +477,7 @@ def main():
 
     # El manifiesto se rehace siempre, aunque no haya habido conversion:
     # es barato (solo lee texto) y asi nunca queda desfasado de las hojas.
-    escribir_manifiesto()
+    escribir_manifiesto(convertidas)
     avisar_de_los_no_reconocidos(usados)
 
 
